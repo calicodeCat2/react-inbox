@@ -1,0 +1,40 @@
+  disableReadButton = () => {
+    let selectedMessages = this.state.messages.filter(message => message.selected)
+    let readMessages = selectedMessages.map(message => {
+      return message.read ? true : false
+    })
+    return readMessages.includes(true) || readMessages.length === 0 ? 'disabled' : ''
+  }
+
+  disableUnReadButton = () => {
+    let selectedMessages = this.state.messages.filter(message => message.selected)
+    let UnReadMessages = selectedMessages.map(message => {
+      return message.read ? false : true
+    })
+    return UnReadMessages.includes(false) || UnReadMessages.length === 0 ? 'disabled' : ''
+  }
+  
+  disableLabelApplySelect = () => {
+    let selectedMessages = this.state.messages.filter(message => message.selected)
+    return selectedMessages === 0 ? 'disabled' : ''
+  }
+
+  disableLabelRemoveSelect = () => {
+    let selectedMessages = this.state.messages.filter(message => message.selected)
+      return selectedMessages === 0 ? 'disabled' : ''
+  }
+
+    disableDeleteButton = () => {
+    let selectedMessages = this.state.message.filter(message => message.selected)
+    let UnReadMessages = selectedMessages.map(message => {
+      return message.selected ? false : true
+    })
+    return UnReadMessages.includes(false) || UnReadMessages.length === 0 ? 'disabled' : ''
+  }
+
+
+        // disableReadButton={this.disableReadButton}
+      // disableUnReadButton={this.disableUnReadButton}
+      // disableDeleteButton={this.disableDeleteButton}
+      // disableLabelApplySelect={this.disableLabelApplySelect}
+      // disableLabelRemoveSelect={this.disableLabelRemoveSelect}

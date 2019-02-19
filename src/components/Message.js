@@ -6,8 +6,10 @@ export default class Message extends Component {
     
     const { id, subject, read, starred, labels, selected } = this.props.message;
     const { markStarred, markRead, markChecked } = this.props;
-    let showChecked = selected ? "fa fa-check-square-o" : "fa fa-check-minus-o"
-    console.log(read, id);
+    
+    console.log("selected", selected, id);
+    console.log("read" ,read, id);
+
     let labelNames = labels && labels.length
       ? labels.map(label => {
           return <span class="label label-warning">{label}</span>;
@@ -16,13 +18,13 @@ export default class Message extends Component {
 
 
     return (
-      <div className={`row message ${read ? "read" : "unread"} ${selected ? "bgcolor=yellow" : "bgcolor=white"}`}>
+      <div className={`row message ${read ? "read" : "unread"} ${selected ? 'selected' : ''}`}>
         <div className="col-xs-1">
           <div className="row">
             <div className="col-xs-2" >
               <input type="checkbox"
-              className={showChecked}
-              onClick={ () => markChecked(this.props.message)} />
+              checked={`${selected ? "checked" : ""}`}
+              onClick={ () => markChecked(id)} />
             </div>
             <div className="col-xs-2">
               <i className={`star fa fa-star${starred ? "" : "-o"}`}

@@ -4,7 +4,6 @@ import Messages from "./components/Messages";
 import "./App.css";
 
 
-
 class App extends Component {
   state = {
     messages: [],
@@ -83,8 +82,7 @@ class App extends Component {
     }
   }
 
-  markChecked = async (message) => {
-    let { id } = message
+  markChecked = async (id) => {
     try {
       let theMessage = this.state.messages.filter(msg => msg.id == id)[0]
       const res = await fetch(`http://localhost:8000/messages/${id}`, {
@@ -112,25 +110,23 @@ class App extends Component {
     }
   }
 
+  // numMessagesSelected = () => this.state.messages.filter(message => message.selected).length
+  
   toolbarSelectorAction = () => {
-    let numMessagesSelected = () => this.state.messages.filter(message => {
-      return message.selected
-    }).length
-    let checkAction = ''
+    let numMessagesSelected = this.state.messages.filter(message => message.selected).length
+    let checkAction = 'fa-square-o'
     if (numMessagesSelected === this.state.messages.length) {
-      checkAction = '-check'
+      checkAction = 'fa-check-square-o'
     } else if (numMessagesSelected === 0) {
       checkAction = ''
     } else {
-      checkAction = '-minus'
+      checkAction = 'fa-check-square-minus'
     }
     return checkAction
   }
 
   toolbarSelectorFunc = () => {
-    let numMessagesSelected = () => this.state.messages.filter(message => {
-      return message.selected
-    }).length
+    let numMessagesSelected = this.state.messages.filter(message => message.selected).length
       if(numMessagesSelected === this.state.messages.length) {
         this.setState({
           message: this.state.messages.map(message => {
@@ -166,21 +162,90 @@ class App extends Component {
       })))
   }
 
+  disableReadButton = () => {
+    let selectedMessages = this.state.messages.filter(message => message.selected)
+    let readMessages = selectedMessages.map(message => message.read)
+    return readMessages.includes(true) || readMessages.length === 0 ? 'disabled' : ''
+  }
+
+  disableUnReadButton = () => {
+    let selectedMessages = this.state.messages.filter(message => message.selected)
+    let UnReadMessages = selectedMessages.map(message => !message.read)
+    return UnReadMessages.includes(true) || UnReadMessages.length === 0 ? 'disabled' : ''
+  }
+  
+  disableLabelApplySelect = () => {
+    let selectedMessages = this.state.messages.filter(message => message.selected)
+    return selectedMessages === 0 ? 'disabled' : ''
+  }
+
+  disableLabelRemoveSelect = () => {
+    let selectedMessages = this.state.messages.filter(message => message.selected)
+      return selectedMessages === 0 ? 'disabled' : ''
+  }
+  
+  applyLabel = (label) => {
+    if (label === 'Apply Label') return
+    let selectedMessages = this.state.message.filter(message => message.selected)
+    this.setState( this.state.messages.concat(selectedMessages.map(message => {
+      if (message.labels.includes(label)) return message
+      message.labels.push(label)
+      return message
+    })))
+    
+  }
+  
+  removeLabel = (label) => {
+    if (label === 'Remove Label') return
+    let selectedMessages = this.state.message.filter(message => message.selected)
+
+    this.setState( this.state.messages.concat(selectedMessages.map(message => {
+      message.labels.splice(label, 1)
+      return message
+    })))
+
+  }
+
+  deleteMessage = () => {
+        let newState = this.state.messages.filter(message => !message.selected);
+        this.setState({ messages: newState })
+  }
+
+  disableDeleteButton = () => {
+    let selectedMessages = this.state.message.filter(message => message.selected)
+    let UnReadMessages = selectedMessages.map(message => {
+      return message.selected ? false : true
+    })
+    return UnReadMessages.includes(false) || UnReadMessages.length === 0 ? 'disabled' : ''
+  }
+
+
+
 
   render() {
     return (
       <div className="App container">
-      <Toolbar messages={this.state.messages} 
-      toolbarSelectorAction={this.toolbarSelectorAction}
-      toolbarSelectorFunc={this.toolbarSelectorFunc}
-      markAsReadFunc={this.markAsReadFunc}
-      markAsUnReadFunc={this.markAsUnReadFunc}
+      <Toolbar
+        messages={this.state.messages} 
+        toolbarSelectorAction={this.toolbarSelectorAction}
+        toolbarSelectorFunc={this.toolbarSelectorFunc}
+        markAsReadFunc={this.markAsReadFunc}
+        markAsUnReadFunc={this.markAsUnReadFunc}
+        disableReadButton={this.disableReadButton}
+        disableUnReadButton={this.disableUnReadButton}
+        deleteMessage={this.deleteMessage}
+        disableDeleteButton={this.disableDeleteButton}
+        disableLabelApplySelect={this.disableLabelApplySelect}
+        disableLabelRemoveSelect={this.disableLabelRemoveSelect}
+        applyLabel={this.applyLabel}
+        removeLabel={this.removeLabel}
        />
       <Messages
           messages={this.state.messages.sort((a, b) => a.id - b.id)}
           markStarred={this.markStarred}
           markRead={this.markRead}
           markChecked={this.markChecked}
+          disableDeleteButton={this.disableDeleteButton}
         />
       </div>
     );
