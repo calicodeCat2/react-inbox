@@ -7,8 +7,8 @@ export default class Message extends Component {
     const { id, subject, read, starred, labels, selected } = this.props.message;
     const { markStarred, markRead, markChecked } = this.props;
     
-    console.log("selected", selected, id);
-    console.log("read" ,read, id);
+    // console.log("selected", selected, id);
+    // console.log("read" ,read, id);
 
     let labelNames = labels && labels.length
       ? labels.map(label => {

@@ -8,22 +8,16 @@ export default class Toolbar extends Component {
 
   handleMarkAsUnRead = () => {
     this.props.markAsUnReadFunc()
+    
   }
 
   handleDelete = () => {
-    this.props.deleteMessage()    
+    this.props.deleteMessage(this.props.message)    
   }
 
-
-  
   render() {
-    let unReadMessageBadge = this.props.messages.filter(message => !message.read).length
-    let selectedTotal = this.props.messages.reduce((acc, val) => acc + !val.selected, 0)
-    
-    console.log(document.querySelectorAll('select'[0].value));
-    
-    
 
+    let unReadMessageBadge = this.props.messages.filter(message => !message.read).length
     return (
       <div className="row toolbar">
         <div className="col-md-12">
@@ -40,7 +34,7 @@ export default class Toolbar extends Component {
 */}
           <button className="btn btn-default"
             onClick={this.handleMarkAsRead}
-            disabled={this.props.disableReadButton()}
+            // disabled={this.props.disableReadButton()}
             >Mark As Read</button>
             
             <button className="btn btn-default"
@@ -49,8 +43,8 @@ export default class Toolbar extends Component {
           >Mark As Unread</button>
 
           <select className="form-control label-select" 
-              disabled={this.props.disableLabelApplySelect}>
-              onChange={() => this.props.applyLabel( document.querySelectorAll('select'[0].value))}
+              disabled={this.props.disableLabelApplySelect}
+              onChange={(e) => this.props.applyLabelFunc(e.target.value)}>
               <option>Apply label</option>
               <option value="dev">dev</option>
               <option value="personal">personal</option>
@@ -58,8 +52,8 @@ export default class Toolbar extends Component {
               </select>
               
               <select className="form-control label-select"
-              disabled={this.props.disableLabelRemoveSelect()}>
-              onChange={() => this.props.removeLabel( document.querySelectorAll('select'[1].value))}
+              disabled={this.props.disableLabelRemoveSelect()}
+              onChange={(e) => this.props.removeLabelFunc(e.target.value)}>
             <option>Remove label</option>
             <option value="dev">dev</option>
             <option value="personal">personal</option>

@@ -109,20 +109,21 @@ class App extends Component {
       console.error(e)
     }
   }
-
-  // numMessagesSelected = () => this.state.messages.filter(message => message.selected).length
   
   toolbarSelectorAction = () => {
     let numMessagesSelected = this.state.messages.filter(message => message.selected).length
     let checkAction = 'fa-square-o'
     if (numMessagesSelected === this.state.messages.length) {
-      checkAction = 'fa-check-square-o'
-    } else if (numMessagesSelected === 0) {
       checkAction = ''
+    } else if (numMessagesSelected === 0) {
+      checkAction = 'fa-square-o'
     } else {
       checkAction = 'fa-check-square-minus'
     }
+    console.log(checkAction);
     return checkAction
+  
+    
   }
 
   toolbarSelectorFunc = () => {
@@ -144,22 +145,60 @@ class App extends Component {
       }
   }
 
-  markAsReadFunc = () => {
+  markAsReadFunc = async () => {
     let selectedMessages = this.state.messages.filter(message => message.selected)
-    this.setState(
-      this.state.messages.concat(selectedMessages.map(message => {
-        message.read = true
-        return message
-      })))
+    let urlArray = selectedMessages.map(message => "http://localhost:8000/messages/" + message.id)
+    let promiseArray = []
+      for (let i = 0; i < urlArray.length; i++) {
+        promiseArray.push(
+           fetch(urlArray[i], {
+            method: 'PATCH',
+            body: JSON.stringify({read: true}),
+            headers: {
+              'Content-Type': 'application/json'
+            }
+          }))
+        }
+          Promise.all(promiseArray).then(()=> {
+              this.setState(prevState => {
+            return {
+              messages: prevState.messages.reduce((acc, message) => {
+                if (message.selected) {
+                  return [...acc, {...message, read: true}]
+                }
+                return [...acc, message]
+              }, [])
+            }
+          })
+          })  
   }
 
-  markAsUnReadFunc = () => {
+  markAsUnReadFunc = async () => {
     let selectedMessages = this.state.messages.filter(message => message.selected)
-    this.setState(
-      this.state.messages.concat(selectedMessages.map(message => {
-        message.read = false
-        return message
-      })))
+    let urlArray = selectedMessages.map(message => "http://localhost:8000/messages/" + message.id)
+    let promiseArray = []
+      for (let i = 0; i < urlArray.length; i++) {
+        promiseArray.push(
+           fetch(urlArray[i], {
+            method: 'PATCH',
+            body: JSON.stringify({read: false}),
+            headers: {
+              'Content-Type': 'application/json'
+            }
+          }))
+        }
+          Promise.all(promiseArray).then(()=> {
+              this.setState(prevState => {
+            return {
+              messages: prevState.messages.reduce((acc, message) => {
+                if (message.selected) {
+                  return [...acc, {...message, read: false}]
+                }
+                return [...acc, message]
+              }, [])
+            }
+          })
+          })  
   }
 
   disableReadButton = () => {
@@ -184,31 +223,109 @@ class App extends Component {
       return selectedMessages === 0 ? 'disabled' : ''
   }
   
-  applyLabel = (label) => {
-    if (label === 'Apply Label') return
-    let selectedMessages = this.state.message.filter(message => message.selected)
-    this.setState( this.state.messages.concat(selectedMessages.map(message => {
-      if (message.labels.includes(label)) return message
-      message.labels.push(label)
-      return message
-    })))
-    
+  applyLabelFunc = async (label) => {
+    let selectedMessages = this.state.messages.filter(message => message.selected)
+  // Need to map selectedMessages for Labels so new label can be appended?
+    let urlArray = selectedMessages.map(message => {
+      return {
+        url: "http://localhost:8000/messages/" + message.id, labels: message.labels    
+      }
+    })
+    let promiseArray = []
+      for (let i = 0; i < urlArray.length; i++) {
+        promiseArray.push(
+           fetch(urlArray[i], {
+            method: 'PATCH',
+            body: JSON.stringify({labels: label}),
+            headers: {
+              'Content-Type': 'application/json'
+            }
+          }))
+        }
+          Promise.all(promiseArray).then(()=> {
+              this.setState(prevState => {
+            return {
+              messages: prevState.messages.reduce((acc, message) => {
+                if (message.selected && !message.labels.includes(label)) {
+                  message.labels.push(label) 
+                  return [...acc, {...message}]
+                }
+                return [...acc, message]
+              }, [])
+            }
+          })
+          })  
   }
   
-  removeLabel = (label) => {
-    if (label === 'Remove Label') return
-    let selectedMessages = this.state.message.filter(message => message.selected)
-
-    this.setState( this.state.messages.concat(selectedMessages.map(message => {
-      message.labels.splice(label, 1)
-      return message
-    })))
-
+  removeLabelFunc = async (label) => {
+    let selectedMessages = this.state.messages.filter(message => message.selected)
+    // let selectedLabels = this.state.selectedMessages.map(messageLabel => messageLabel !== label)
+    let urlArray = selectedMessages.map(message => {
+      return {
+        url: "http://localhost:8000/messages/" + message.id, labels: message.labels
+      }
+    })
+    let promiseArray = []
+      for (let i = 0; i < urlArray.length; i++) {
+        promiseArray.push(
+           fetch(urlArray[i], {
+            method: 'PATCH',
+            body: JSON.stringify({labels: !label}),
+            headers: {
+              'Content-Type': 'application/json'
+            }
+          }))
+          Promise.all(promiseArray).then(()=> {
+              this.setState(prevState => {
+            return {
+              messages: prevState.messages.reduce((acc, message) => {
+                if (message.selected) {
+                  message.labels = message.labels.filter(remLabel => remLabel !== label)
+                  return [...acc, {...message}]
+                }
+                return [...acc, message]
+              }, [])
+            }
+          })
+          })  
+    }
   }
 
   deleteMessage = () => {
         let newState = this.state.messages.filter(message => !message.selected);
         this.setState({ messages: newState })
+  }
+
+deleteMessage = async (message) => {
+  let unSelectedMessages = this.state.messages.filter(message => message.selected);
+  let urlArray = unSelectedMessages.map(message => {
+    return {
+      url: "http://localhost:8000/messages/" + message.id
+    }
+  })
+  let promiseArray = [];
+  for (let i = 0; i < urlArray.length; i++) {
+    promiseArray.push(
+     fetch( urlArray[i], {
+       method: "DELETE",
+       body: JSON.stringify({message: message}),
+       header: {
+         "Content-Type": "application/json"
+       }
+     }))
+     Promise.all(promiseArray).then(() => {
+     this.setState(prevState => {
+       return {
+         messages: prevState.messages.reduce((acc, message) => {
+           if (message.selected) {
+             return [...acc, {...message}]
+           }
+          return [...acc, message]
+         }, [])
+       }
+     })
+    })
+  }
   }
 
   disableDeleteButton = () => {
@@ -218,9 +335,6 @@ class App extends Component {
     })
     return UnReadMessages.includes(false) || UnReadMessages.length === 0 ? 'disabled' : ''
   }
-
-
-
 
   render() {
     return (
@@ -237,8 +351,8 @@ class App extends Component {
         disableDeleteButton={this.disableDeleteButton}
         disableLabelApplySelect={this.disableLabelApplySelect}
         disableLabelRemoveSelect={this.disableLabelRemoveSelect}
-        applyLabel={this.applyLabel}
-        removeLabel={this.removeLabel}
+        applyLabelFunc={this.applyLabelFunc}
+        removeLabelFunc={this.removeLabelFunc}
        />
       <Messages
           messages={this.state.messages.sort((a, b) => a.id - b.id)}
